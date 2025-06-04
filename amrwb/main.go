@@ -11,7 +11,7 @@ import (
 
 type AMRWBCodec struct {
 	EncoderState *encoder.EncoderMainState
-	DecoderState *decoder.DecoderMainState
+	DecoderState *decoder.DecoderState
 	Mode         int16
 	DTX          bool
 }
@@ -29,7 +29,7 @@ func NewAMRWBCodec(mode int16, dtx bool) *AMRWBCodec {
 
 func (c *AMRWBCodec) Close() {
 	encoder.E_MAIN_exit(&c.EncoderState)
-	decoder.D_MAIN_exit(&c.DecoderState)
+	decoder.D_MAIN_close(&c.DecoderState)
 }
 
 func (c *AMRWBCodec) Encode(frame []int16) ([]byte, error) {
@@ -54,6 +54,6 @@ func (c *AMRWBCodec) Decode(serial []byte) ([]int16, error) {
 	for i := range serial {
 		input[i] = int16(serial[i])
 	}
-	decoder.D_MAIN_decode(c.DecoderState, input[:], output[:])
+	decoder.D_MAIN_decode(c.Mode, input[:], output[:], c.DecoderState, 0)
 	return output[:], nil
 }
