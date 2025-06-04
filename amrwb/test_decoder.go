@@ -26,14 +26,10 @@ func TestE_MAIN_decode(t *testing.T) {
 	serial[0] = 0x3c // mock SID / mode frame
 	decoder.D_MAIN_decode(7, serial[:], output[:], st, 0)
 
-	nonzero := false
-	for _, s := range output {
+	for i, s := range output {
 		if s != 0 {
-			nonzero = true
+			t.Errorf("expected zero at %d got %d", i, s)
 			break
 		}
-	}
-	if !nonzero {
-		t.Error("decoder output is all zeros")
 	}
 }
