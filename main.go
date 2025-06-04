@@ -18,17 +18,20 @@ func readWavPCM16(path string) ([]int16, error) {
 	defer f.Close()
 
 	r := wav.NewDecoder(f)
-	buf := make([]int16, 0)
-	for {
-		sample, err := r.FullPCMBuffer()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, err
-		}
-		buf = append(buf, int16(sample.Data[0]))
+	if !r.IsValidFile() {
+		return nil, fmt.Errorf("invalid WAV file")
 	}
-	return buf, nil
+
+	pcm, err := r.FullPCMBuffer()
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	samples := make([]int16, len(pcm.Data))
+	for i, v := range pcm.Data {
+		samples[i] = int16(v)
+	}
+	return samples, nil
 }
 
 func writeWavPCM16(path string, samples []int16) error {
@@ -46,7 +49,10 @@ func writeWavPCM16(path string, samples []int16) error {
 	for i, s := range samples {
 		data.Data[i] = int(s)
 	}
-	return w.Write(data)
+	if err := w.Write(data); err != nil {
+		return err
+	}
+	return w.Close()
 }
 
 func main() {
